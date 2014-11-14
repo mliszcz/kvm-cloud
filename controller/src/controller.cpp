@@ -6,7 +6,9 @@
 #include <cstdio>
 #include <cstring>
 
-#include "libkvm.hpp"
+extern "C" {
+	#include "libkvm.h"
+}
 
 // https://www.kernel.org/doc/Documentation/virtual/kvm/api.txt
 

@@ -24,11 +24,9 @@ struct kvm_context;
 typedef struct kvm_context *kvm_context_t;
 
 #if defined(__x86_64__) || defined(__i386__)
-extern "C" {
 struct kvm_msr_list *kvm_get_msr_list(kvm_context_t);
 int kvm_get_msrs(kvm_context_t, int vcpu, struct kvm_msr_entry *msrs, int n);
 int kvm_set_msrs(kvm_context_t, int vcpu, struct kvm_msr_entry *msrs, int n);
-}
 #endif
 
 /*!
@@ -88,9 +86,6 @@ struct kvm_callbacks {
 	 struct kvm_run *run);
 #endif
 };
-
-
-extern "C" {
 
 /*!
  * \brief Create new KVM context
@@ -849,12 +844,5 @@ int kvm_assign_set_msix_nr(kvm_context_t kvm,
 			   struct kvm_assigned_msix_nr *msix_nr);
 int kvm_assign_set_msix_entry(kvm_context_t kvm,
                               struct kvm_assigned_msix_entry *entry);
-
-
-
-}
-/* extern "C" ends here */
-
-
 #endif
 #endif
