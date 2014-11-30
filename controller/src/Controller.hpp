@@ -43,8 +43,8 @@ public:
 		// initialize templates
 		templates["cirros"] = shared_ptr<Template>(new Template(
 			"cirros",
-			"templates/cirros/kernel.img",
-			"templates/cirros/rootfs.img"));
+			"templates/cirros/cirros-0.3.3-x86_64-kernel",
+			"templates/cirros/cirros-0.3.3-x86_64-rootfs-non_ec2.img"));
 	}
 
 	map<string, shared_ptr<Template>> getTemplates() {
@@ -53,7 +53,7 @@ public:
 
 	InstanceId instantiate(shared_ptr<Template> templ, int memory, int cpus) {
 
-		string kernelPath = workingDir + "/" + to_string(nextId) + "/kernel.img";
+		string kernelPath = workingDir + "/" + to_string(nextId) + "/kernel";
 		string rootfsPath = workingDir + "/" + to_string(nextId) + "/rootfs.img";
 
 		copyFile(templ->_kernelPath, kernelPath);
