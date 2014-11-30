@@ -13,7 +13,7 @@ OUT_DIR=out
 all: controller
 
 controller:
-	$(CXX) -m64 $(CXX_FLAGS) -I$(INC_DIR) -o $(OUT_DIR)/controller $(SRC_DIR)/controller.cpp -L$(LIB_DIR) -l:$(LIB_DIR)/libkvm.a 
+	$(CXX) -m64 $(CXX_FLAGS) -I$(INC_DIR) -o $(OUT_DIR)/controller $(SRC_DIR)/controller.cpp -L$(LIB_DIR) -lkvm
 
 clean:
 	rm -rf $(OUT_DIR)/*
