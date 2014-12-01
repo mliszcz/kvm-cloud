@@ -52,6 +52,8 @@ public:
 
 	virtual void run() {
 
+		for(;;) {
+
 		auto commands = socket->read();
 		auto cmd = commands.at(0);
 
@@ -63,13 +65,18 @@ public:
 		}
 
 		else if (cmd == "instances") {
-			for (auto& kv : controller->getInstances())
-				socket->write(vector<string>{
-					"id: " + to_string(kv.first) + "," +
-					"mem: " + to_string(kv.second->getMemory()) + ", " +
-					"cpus: " + to_string(kv.second->getCpus()) + ", " +
-					"ssh: " + to_string(kv.second->getSshPort())
-				});
+			if (controller->getInstances().size() == 0) {
+				socket->write(vector<string>{"no running instances"});
+			} else {
+				for (auto& kv : controller->getInstances())
+					socket->write(vector<string>{
+						"id: " + to_string(kv.first) + ", " +
+						"mem: " + to_string(kv.second->getMemory()) + ", " +
+						"cpus: " + to_string(kv.second->getCpus()) + ", " +
+						"ssh: " + to_string(kv.second->getSshPort()) + ", " +
+						(kv.second->isRunning() ? "ONLINE" : "OFFLINE")
+					});
+			}
 		}
 
 		else if (cmd == "new") {
@@ -95,15 +102,27 @@ public:
 			}
 		}
 
-		socket->close();
+		else {
+			socket->write(vector<string>{"unknown command"});
+		}
+
+		socket->write(vector<string>{""});
+
+		// socket->close();
+		}
 	}
 };
 
 
 int main(int argc, char** argv) {
 
+	if (argc < 2) {
+		logger->log("usage: controller <port>");
+		return -1;
+	}
+
 	controller 	= make_shared<Vm::Controller>();
-	ssocket 	= make_shared<Net::ServerSocket>(8989);
+	ssocket 	= make_shared<Net::ServerSocket>(std::stoi(argv[1]));
 	logger 		= make_shared<Util::Logger>(std::cout);
 
 	logger->log("VM Controller started!");

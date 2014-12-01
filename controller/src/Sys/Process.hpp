@@ -5,9 +5,15 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <cstring>
 
-#include <sys/types.h> 
+#include <unistd.h>
+#include <sys/types.h>
 #include <signal.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 
 using std::map;;
 using std::string;
