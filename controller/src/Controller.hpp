@@ -5,7 +5,10 @@
 #include <map>
 #include <string>
 #include <memory>
+#include <vector>
 #include <fstream>
+
+#include <unistd.h>
 
 #include "Template.hpp"
 #include "Instance.hpp"
@@ -28,7 +31,7 @@ private:
 	map<string, 	shared_ptr<Template>> 	templates;
 	map<InstanceId, shared_ptr<Instance>> 	instances;
 
-	string workingDir = ".";
+	string workingDir = "/tmp";
 
 	void copyFile(string from, string to) {
 		std::ifstream  src(from.c_str(), std::ios::binary);
@@ -51,11 +54,19 @@ public:
 		return templates;
 	}
 
+	map<InstanceId, shared_ptr<Instance>> getInstances() {
+		return instances;
+	}
+
 	InstanceId instantiate(shared_ptr<Template> templ, int memory, int cpus) {
 
-		string kernelPath = workingDir + "/" + to_string(nextId) + "/kernel";
-		string rootfsPath = workingDir + "/" + to_string(nextId) + "/rootfs.img";
+		string instanceDir = workingDir + "/" + to_string(nextId); 
+		string kernelPath = instanceDir + "/kernel";
+		string rootfsPath = instanceDir + "/rootfs.img";
 
+		sys::Process("/bin/mkdir", std::vector<string>{instanceDir}).run();
+		usleep(500000);
+		
 		copyFile(templ->_kernelPath, kernelPath);
 		copyFile(templ->_rootfsPath, rootfsPath);
 

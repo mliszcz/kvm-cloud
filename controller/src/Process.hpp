@@ -34,6 +34,12 @@ public:
 
 		if (_pid != 0) return _pid;
 
+		int fd = open("/dev/null", O_RDWR);
+		dup2(fd, 1);
+		dup2(fd, 2);
+		dup2(fd, 0);
+		close(fd);
+
 		_opts.insert(_opts.begin(), "");
 
 		char** args = new char*[_opts.size()+1];
