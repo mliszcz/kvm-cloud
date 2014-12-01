@@ -6,14 +6,14 @@
 #include <vector>
 #include <memory>
 
-#include "Process.hpp"
+#include "../Sys/Process.hpp"
 
 using std::string;
 using std::shared_ptr;
 using std::to_string;
 using std::make_shared;
 
-namespace vm {
+namespace Vm {
 
 class Controller;
 
@@ -23,7 +23,7 @@ class Instance {
 
 private:
 
-	shared_ptr<sys::Process> process;
+	shared_ptr<Sys::Process> process;
 	int _memory;
 	int _cpus;
 	int _sshPort;
@@ -51,7 +51,7 @@ private:
 			+" -enable-kvm''"
 		};
 
-		process = make_shared<sys::Process>("/bin/bash", vmArgs);
+		process = make_shared<Sys::Process>("/bin/bash", vmArgs);
 	}
 
 public:

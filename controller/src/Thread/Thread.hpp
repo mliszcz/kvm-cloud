@@ -1,9 +1,3 @@
-/*
- * Thread.hpp
- *
- *  Created on: Jun 15, 2013
- *      Author: michal
- */
 
 #ifndef THREAD_HPP_
 #define THREAD_HPP_

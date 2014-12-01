@@ -1,9 +1,3 @@
-/*
- * NetException.hpp
- *
- *  Created on: May 16, 2013
- *      Author: michal
- */
 
 #ifndef NETEXCEPTION_HPP_
 #define NETEXCEPTION_HPP_

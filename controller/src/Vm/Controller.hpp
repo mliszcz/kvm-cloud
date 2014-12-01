@@ -13,12 +13,14 @@
 #include "Template.hpp"
 #include "Instance.hpp"
 
+#include "../Thread/Mutex.hpp"
+
 using std::map;
 using std::string;
 using std::shared_ptr;
 using std::to_string;
 
-namespace vm {
+namespace Vm {
 
 typedef int InstanceId;
 
@@ -40,6 +42,8 @@ private:
 	}
 
 public:
+
+	Thread::Mutex mutex;
 
 	Controller() {
 
@@ -64,7 +68,7 @@ public:
 		string kernelPath = instanceDir + "/kernel";
 		string rootfsPath = instanceDir + "/rootfs.img";
 
-		sys::Process("/bin/mkdir", std::vector<string>{instanceDir}).run();
+		Sys::Process("/bin/mkdir", std::vector<string>{instanceDir}).run();
 		usleep(500000);
 		
 		copyFile(templ->_kernelPath, kernelPath);

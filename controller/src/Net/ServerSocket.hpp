@@ -1,9 +1,3 @@
-/*
- * ServerSocket.hpp
- *
- *  Created on: May 16, 2013
- *      Author: michal
- */
 
 #ifndef SERVERSOCKET_HPP_
 #define SERVERSOCKET_HPP_

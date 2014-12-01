@@ -1,9 +1,3 @@
-/*
- * SocketIstream.hpp
- *
- *  Created on: May 19, 2013
- *      Author: michal
- */
 
 #ifndef SOCKETISTREAM_HPP_
 #define SOCKETISTREAM_HPP_
@@ -16,6 +10,8 @@
 #include <streambuf>
 #include <string>
 #include <unistd.h>
+
+#include <sys/socket.h>
 
 namespace Net
 {

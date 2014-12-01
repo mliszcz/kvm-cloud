@@ -6,7 +6,7 @@
 
 using std::string;
 
-namespace vm {
+namespace Vm {
 
 class Controller;
 

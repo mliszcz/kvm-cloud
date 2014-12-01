@@ -1,9 +1,3 @@
-/*
- * Exception.hpp
- *
- *  Created on: Jun 14, 2013
- *      Author: michal
- */
 
 #ifndef EXCEPTION_HPP_
 #define EXCEPTION_HPP_

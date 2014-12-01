@@ -1,20 +1,18 @@
-/*
- * Socket.hpp
- *
- *  Created on: May 17, 2013
- *      Author: michal
- */
 
 #ifndef SOCKET_HPP_
 #define SOCKET_HPP_
 
+#include <vector>
 #include <string>
 #include <list>
 #include <algorithm>
 #include <memory>
+#include <cstdlib>
 
-#include "HttpRequestFactory.hpp"
-#include "HttpResponse.hpp"
+#include <sys/socket.h>
+
+#include "SocketIstream.hpp"
+
 
 namespace Net
 {
@@ -52,15 +50,21 @@ public:
 		close();
 	}
 
-	std::shared_ptr<HttpRequest> read(std::shared_ptr<HttpRequestFactory> requestFactory)
+	std::vector<std::string> read()
 	{
-		return requestFactory->create(sockFD);
+		std::vector<std::string> result;
+		std::string line;
+		SocketIstream socketStream(sockFD);
+		while(std::getline(socketStream, line))
+			result.push_back(line);
+
+		return result;
 	}
 
-	void write(std::shared_ptr<HttpResponse> response)
+	void write(std::vector<std::string> data)
 	{
-		std::string data = response->toString();
-		::write(sockFD, data.c_str(), data.size());
+		for (auto& d : data)
+			::write(sockFD, (d+"\r\n").c_str(), d.size()+2);
 	}
 };
 

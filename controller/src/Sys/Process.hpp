@@ -13,7 +13,7 @@ using std::map;;
 using std::string;
 using std::vector;
 
-namespace sys {
+namespace Sys {
 
 class Process {
 private:

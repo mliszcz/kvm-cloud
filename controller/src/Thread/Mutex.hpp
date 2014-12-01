@@ -1,9 +1,3 @@
-/*
- * Mutex.hpp
- *
- *  Created on: Jun 15, 2013
- *      Author: michal
- */
 
 #ifndef MUTEX_HPP_
 #define MUTEX_HPP_
