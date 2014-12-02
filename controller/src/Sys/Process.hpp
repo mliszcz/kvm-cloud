@@ -34,17 +34,19 @@ public:
 
 	~Process() = default;
 
-	pid_t run() {
+	pid_t run(bool silent = true) {
 
 		_pid = fork();
 
 		if (_pid != 0) return _pid;
 
-		int fd = open("/dev/null", O_RDWR);
-		dup2(fd, 1);
-		dup2(fd, 2);
-		dup2(fd, 0);
-		close(fd);
+		if (silent) {
+			int fd = open("/dev/null", O_RDWR);
+			dup2(fd, 1);
+			dup2(fd, 2);
+			dup2(fd, 0);
+			close(fd);
+		}
 
 		_opts.insert(_opts.begin(), "");
 
@@ -64,8 +66,7 @@ public:
 
 	bool isRunning() {
 		if (_pid == 0) return false;
-		if (::kill(_pid, 0) == 0) return true;
-		return false;
+		return ::kill(_pid, 0) == 0;
 	}
 
 	void kill() {

@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "../Sys/Process.hpp"
+#include "Template.hpp"
 
 using std::string;
 using std::shared_ptr;
@@ -23,20 +24,25 @@ class Instance {
 
 private:
 
+	int id;
+	int memory;
+	int cpus;
+	int sshPort;
+
 	shared_ptr<Sys::Process> process;
-	int _memory;
-	int _cpus;
-	int _sshPort;
+	shared_ptr<Template> templat;
 
 	Instance(
+		shared_ptr<Template> _templat,
 		string kernelPath,
 		string rootfsPath,
-		int memory,
-		int cpus,
-		int sshPort)
-		: _memory(memory)
-		, _cpus(cpus)
-		, _sshPort(sshPort) {
+		int _memory,
+		int _cpus,
+		int _sshPort)
+		: templat(_templat)
+		, memory(_memory)
+		, cpus(_cpus)
+		, sshPort(_sshPort) {
 
 		vector<string> vmArgs {
 			"-c",
@@ -56,20 +62,20 @@ private:
 
 public:
 
-	int getMemory() {
-		return _memory;
-	}
+	int getId() { return id; }
 
-	int getCpus() {
-		return _cpus;
-	}
+	int getMemory() { return memory; }
 
-	int getSshPort() {
-		return _sshPort;
-	}
+	int getCpus() { return cpus; }
 
-	void run() {
-		process->run();
+	int getSshPort() { return sshPort; }
+
+	shared_ptr<Template> getTemplate() { return templat; }
+
+	bool run() {
+		if (isRunning()) return false;
+		process->run(true);
+		return isRunning();
 	}
 
 	bool isRunning() {

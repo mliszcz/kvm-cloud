@@ -22,12 +22,10 @@ using std::to_string;
 
 namespace Vm {
 
-typedef int InstanceId;
-
 class Controller {
 
 private:
-	InstanceId nextId = 1001;
+	int nextId = 1001;
 	int nextPort = 2221;
 
 	map<string, 	shared_ptr<Template>> 	templates;
@@ -45,13 +43,15 @@ public:
 
 	Thread::Mutex mutex;
 
-	Controller() {
+	Controller(int _initialId, int _initialPort)
+		nextId(_initialId), nextPort(_initialPort) {
 
 		// initialize templates
 		templates["cirros"] = shared_ptr<Template>(new Template(
 			"cirros",
 			"templates/cirros/cirros-0.3.3-x86_64-kernel",
-			"templates/cirros/cirros-0.3.3-x86_64-rootfs-non_ec2.img"));
+			"templates/cirros/cirros-0.3.3-x86_64-rootfs-non_ec2.img"
+		));
 	}
 
 	map<string, shared_ptr<Template>> getTemplates() {
@@ -62,7 +62,7 @@ public:
 		return instances;
 	}
 
-	InstanceId instantiate(shared_ptr<Template> templ, int memory, int cpus) {
+	int instantiate(shared_ptr<Template> templ, int memory, int cpus) {
 
 		string instanceDir = workingDir + "/" + to_string(nextId); 
 		string kernelPath = instanceDir + "/kernel";
@@ -75,6 +75,7 @@ public:
 		copyFile(templ->_rootfsPath, rootfsPath);
 
 		instances[nextId] = shared_ptr<Instance>(new Instance(
+			templ,
 			kernelPath,
 			rootfsPath,
 			memory,

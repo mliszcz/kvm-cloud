@@ -17,6 +17,7 @@
 #include <unistd.h>
 
 #include "SocketIstream.hpp"
+#include "NetException.hpp"
 
 
 namespace Net
@@ -43,29 +44,20 @@ private:
 public:
 
 	Socket(std::string address, int port) {
+
+		sockFD = ::socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+		if (sockFD == -1)
+			throw NetException("Socket::Socket(string, int)", "socket() failed");
+
 		struct sockaddr_in serv_addr;
-		int fdSocket;
-
-		// fdSocket = socket(AF_INET, SOCK_STREAM, 0);
-		fdSocket = ::socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-		if (!fdSocket)
-		{
-			perror("socket failed");
-			throw -1;
-		}
-
 		bzero((char*)&serv_addr, sizeof(serv_addr));
 		serv_addr.sin_family  = AF_INET;
 		serv_addr.sin_addr.s_addr  = inet_addr(address.c_str());
 		serv_addr.sin_port  = htons(port);
 
-		if (-1 == connect(fdSocket, (struct sockaddr*) &serv_addr, sizeof(serv_addr)) )
-		{
-			perror("connect failed");
-			throw -1;
-		}
-
-		sockFD = fdSocket;
+		if (-1 == ::connect(sockFD, (struct sockaddr*) &serv_addr, sizeof(serv_addr)) )
+			throw NetException("Socket::Socket(string, int)", "connect() failed");
 	}
 
 	void close()
@@ -92,10 +84,14 @@ public:
 		return result;
 	}
 
-	void write(std::vector<std::string> data)
+	void write(const std::vector<std::string>& data)
 	{
-		for (auto& d : data)
-			::write(sockFD, (d+"\r\n").c_str(), d.size()+2);
+		for (auto& d : data) write(d);
+	}
+
+	void write(const std::string& d)
+	{
+		::write(sockFD, (d+"\r\n").c_str(), d.size()+2);
 	}
 };
 
