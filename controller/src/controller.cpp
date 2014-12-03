@@ -9,6 +9,7 @@
 #include <string>
 
 #include <sys/types.h>
+#include <signal.h>
 #include <unistd.h>
 
 #include <map>
@@ -116,8 +117,14 @@ public:
 
 int main(int argc, char** argv) {
 
+	// http://stackoverflow.com/questions/17015830/how-can-i-prevent-zombie-child-processes
+	struct sigaction sigchld_action;
+	sigchld_action.sa_handler = SIG_DFL;
+	sigchld_action.sa_flags = SA_NOCLDWAIT;
+	sigaction(SIGCHLD, &sigchld_action, nullptr);
+
+
 	logger 		= make_shared<Util::Logger>(std::cout);
-	
 
 	if (argc < 4) {
 		logger->log("usage: controller <control-port> <initial-id> <initial-ssh-port>");
