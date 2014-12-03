@@ -5,6 +5,8 @@
 #include <string>
 #include <fstream>
 
+#include "Exception.hpp"
+
 using std::string;
 using std::ifstream;
 using std::ofstream;
@@ -12,6 +14,8 @@ using std::ofstream;
 namespace Util {
 
 class Cookie {
+
+public:
 
 	template <typename T>
 	static void write(string cookie, T data) {
@@ -21,8 +25,9 @@ class Cookie {
 	template <typename T>
 	static T read(string cookie) {
 		T data;
-		try { ifstream(cookie) >> data; }
-		catch(...) { }
+		ifstream fin(cookie);
+		if (!fin) throw Exception("Cookie::read(string)", "file does not exist");
+		fin >> data;
 		return data;
 	}
 };

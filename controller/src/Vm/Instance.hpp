@@ -33,13 +33,15 @@ private:
 	shared_ptr<Template> templat;
 
 	Instance(
+		int _id,
 		shared_ptr<Template> _templat,
 		string kernelPath,
 		string rootfsPath,
 		int _memory,
 		int _cpus,
 		int _sshPort)
-		: templat(_templat)
+		: id(_id)
+		, templat(_templat)
 		, memory(_memory)
 		, cpus(_cpus)
 		, sshPort(_sshPort) {

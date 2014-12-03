@@ -8,7 +8,11 @@ using std::string;
 
 namespace Vm {
 
+// class Controller;
+
 class Template {
+
+friend class Controller;
 
 private:
 	string _name;

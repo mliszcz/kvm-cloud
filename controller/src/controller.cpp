@@ -33,6 +33,7 @@ using std::vector;
 using std::to_string;
 using std::shared_ptr;
 using std::make_shared;
+using std::stoi;
 
 
 Thread::Mutex ctrlMutex;
@@ -82,8 +83,8 @@ public:
 		else if (cmd == "new") {
 			try {
 				auto name = commands.at(1);
-				int mem = std::stoi(commands.at(2));
-				int cpus = std::stoi(commands.at(3));
+				int mem = stoi(commands.at(2));
+				int cpus = stoi(commands.at(3));
 
 				auto tmpls = controller->getTemplates();
 
@@ -91,8 +92,7 @@ public:
 					socket->write(vector<string>{"template not found"});
 				} else {
 					auto tmpl = tmpls[name];
-					auto id = controller->instantiate(tmpl, mem, cpus);
-					auto inst = controller->getInstances()[id];
+					auto inst = controller->instantiate(tmpl, mem, cpus);
 					inst->run();
 					socket->write(vector<string>{"instantiated and listening at " + to_string(inst->getSshPort())});
 				}
@@ -116,14 +116,16 @@ public:
 
 int main(int argc, char** argv) {
 
-	if (argc < 2) {
-		logger->log("usage: controller <port>");
+	logger 		= make_shared<Util::Logger>(std::cout);
+	
+
+	if (argc < 4) {
+		logger->log("usage: controller <control-port> <initial-id> <initial-ssh-port>");
 		return -1;
 	}
 
-	controller 	= make_shared<Vm::Controller>();
 	ssocket 	= make_shared<Net::ServerSocket>(std::stoi(argv[1]));
-	logger 		= make_shared<Util::Logger>(std::cout);
+	controller 	= make_shared<Vm::Controller>(stoi(argv[2]), stoi(argv[3]), logger);
 
 	logger->log("VM Controller started!");
 

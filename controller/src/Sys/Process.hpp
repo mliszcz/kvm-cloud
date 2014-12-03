@@ -8,7 +8,8 @@
 #include <cstring>
 
 #include <unistd.h>
-#include <sys/types.h>
+#include <sys/types.h> 
+#include <sys/wait.h> 
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -71,6 +72,16 @@ public:
 
 	void kill() {
 		::kill(_pid, 9);
+	}
+
+	void wait() {
+		int status;
+		::waitpid(_pid, &status, 0);
+	}
+
+	void runAndWait() {
+		run();
+		wait();
 	}
 
 };
