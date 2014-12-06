@@ -84,14 +84,21 @@ public:
 		return result;
 	}
 
-	void write(const std::vector<std::string>& data)
+	Socket& write(const std::vector<std::string>& data)
 	{
 		for (auto& d : data) write(d);
+		return *this;
 	}
 
-	void write(const std::string& d)
+	Socket& write(const std::string& d)
 	{
 		::write(sockFD, (d+"\r\n").c_str(), d.size()+2);
+		return *this;
+	}
+
+	void send()
+	{
+		write("");
 	}
 };
 
