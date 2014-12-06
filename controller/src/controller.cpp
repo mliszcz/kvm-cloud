@@ -24,6 +24,7 @@
 #include "Net/Socket.hpp"
 #include "Net/ServerSocket.hpp"
 #include "Util/Logger.hpp"
+#include "Util/Helpers.hpp"
 
 extern "C" {
 	#include "libkvm.h"
@@ -37,7 +38,6 @@ using std::make_shared;
 using std::stoi;
 
 
-Thread::Mutex ctrlMutex;
 shared_ptr<Vm::Controller> controller;
 shared_ptr<Net::ServerSocket> ssocket;
 shared_ptr<Util::Logger> 	   logger;
@@ -63,7 +63,7 @@ public:
 
 		if (cmd == "templates") {
 			for (auto& kv : controller->getTemplates())
-				socket->write(vector<string>{kv.second->getName()});
+				socket->write(vector<string>{kv.second->getName() + ", desc: " + kv.second->getDescription()});
 		}
 
 		else if (cmd == "instances") {

@@ -11,6 +11,7 @@
 #include "Net/Socket.hpp"
 #include "Net/ServerSocket.hpp"
 #include "Util/Logger.hpp"
+#include "Util/Helpers.hpp"
 
 #include <map>
 #include <string>
@@ -33,13 +34,14 @@ int main(int argc, char** argv) {
 
 	logger = make_shared<Util::Logger>(std::cout);
 
-	if (argc < 3) {
-		logger->log("usage: client <controller-address> <controller-port>");
+	if (argc < 2) {
+		logger->log("usage: client <controller-address:controller-port>");
 		return -1;
 	}
 
 	try {
-		socket = make_shared<Net::Socket>(argv[1], std::stoi(argv[2]));
+		auto addr = Util::Helpers::explodeAddress(argv[1]);
+		socket = make_shared<Net::Socket>(addr.first, addr.second);
 	} catch(...) {
 		logger->log("cannot create socket");
 		return -1;

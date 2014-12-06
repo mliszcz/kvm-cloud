@@ -10,13 +10,10 @@ INC_DIR=include
 LIB_DIR=lib
 OUT_DIR=out
 
-all: controller client
+all: controller client manager
 
-controller:
-	$(CXX) -m64 $(CXX_FLAGS) -I$(INC_DIR) -o $(OUT_DIR)/controller $(SRC_DIR)/controller.cpp -L$(LIB_DIR) -lkvm -lpthread
-
-client:
-	$(CXX) -m64 $(CXX_FLAGS) -I$(INC_DIR) -o $(OUT_DIR)/client $(SRC_DIR)/client.cpp -L$(LIB_DIR) -lkvm -lpthread
+controller client manager:
+	$(CXX) -m64 $(CXX_FLAGS) -I$(INC_DIR) -o $(OUT_DIR)/$@ $(SRC_DIR)/$@.cpp -L$(LIB_DIR) -lkvm -lpthread
 
 clean:
 	rm -rf $(OUT_DIR)/*
