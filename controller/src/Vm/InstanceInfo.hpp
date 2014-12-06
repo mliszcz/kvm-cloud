@@ -6,15 +6,6 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <iostream>
-
-#include "Thread/Thread.hpp"
-#include "Thread/Mutex.hpp"
-#include "Vm/Controller.hpp"
-#include "Net/Socket.hpp"
-#include "Net/ServerSocket.hpp"
-#include "Util/Logger.hpp"
-#include "Util/Helpers.hpp"
 
 using std::string;
 using std::vector;
@@ -34,6 +25,7 @@ private:
 	int _memory;
 	int _cpus;
 	int _sshPort;
+	bool _running;
 
 public:
 
@@ -42,31 +34,35 @@ public:
 		const string& templ,
 		int memory,
 		int cpus,
-		int sshPort)
+		int sshPort,
+		bool running)
 		: _id(id)
 		, _templ(templ)
-		, _memory(momory)
+		, _memory(memory)
 		, _cpus(cpus)
-		, _sshPort(sshPort) { }
+		, _sshPort(sshPort)
+		, _running(running) { }
 
 	string getId() { return _id; }
 	string getTemplate() { return _templ; }
 	int getMemory() { return _memory; }
 	int getCpus() { return _cpus; }
 	int getSshPort() { return _sshPort; }
+	bool isRunning() { return _running; }
 
 
 	/* serialization */
 
-	static constexpr int SERIAL_SIZE = 5;
+	static constexpr int SERIAL_SIZE = 6;
 
 	vector<string> serialize() {
 		return vector<string> {
-			id,
+			_id,
 			_templ,
 			to_string(_memory),
 			to_string(_cpus),
-			to_string(_sshPort)
+			to_string(_sshPort),
+			to_string((int)_running)
 		};
 	}
 
@@ -76,7 +72,8 @@ public:
 			data[1],
 			stoi(data[2]),
 			stoi(data[3]),
-			stoi(data[4])
+			stoi(data[4]),
+			(bool)stoi(data[5])
 		));
 	}
 };

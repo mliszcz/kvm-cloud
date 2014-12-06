@@ -8,13 +8,10 @@
 #include <memory>
 #include <iostream>
 
-#include "Thread/Thread.hpp"
-#include "Thread/Mutex.hpp"
-#include "Vm/Controller.hpp"
-#include "Net/Socket.hpp"
-#include "Net/ServerSocket.hpp"
-#include "Util/Logger.hpp"
-#include "Util/Helpers.hpp"
+#include "Controller.hpp"
+#include "../Net/Socket.hpp"
+#include "Template.hpp"
+#include "InstanceInfo.hpp"
 
 using std::map;
 using std::string;
@@ -34,11 +31,14 @@ private:
 public:
 
 	ControllerProxy(string address, int port) {
-
 		socket = make_shared<Net::Socket>(address, port);
 	}
 
-	map<string, shared_ptr<Templates>> getTemplates() {
+	~ControllerProxy() {
+		socket->close();
+	}
+
+	map<string, shared_ptr<Template>> getTemplates() {
 
 		socket->write("getTemplates").send();
 		auto data = socket->read();
@@ -46,7 +46,7 @@ public:
 		map<string, shared_ptr<Template>> result;
 
 		for (int i=0; i<data.size(); i += Template::SERIAL_SIZE) {
-			auto tmpl = Template::deserialize(vector<string>(data.begin()+i, data.begin()+i+InstanceInfo::SERIAL_SIZE));
+			auto tmpl = Template::deserialize(vector<string>(data.begin()+i, data.begin()+i+Template::SERIAL_SIZE));
 			result[tmpl->getName()] = tmpl;
 			return result;
 		}
@@ -69,7 +69,7 @@ public:
 	shared_ptr<InstanceInfo> instantiate(shared_ptr<Template> templ, int memory, int cpus) {
 
 		socket-> write("instantiate")
-				.write(InstanceInfo("", templ->getName(), memory, cpus, 0))
+				.write(InstanceInfo("0", templ->getName(), memory, cpus, 0, 0).serialize())
 				.send();
 
 		return InstanceInfo::deserialize(socket->read());

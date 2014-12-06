@@ -8,9 +8,11 @@
 
 #include "../Sys/Process.hpp"
 #include "Template.hpp"
+#include "InstanceInfo.hpp"
 
 using std::string;
 using std::shared_ptr;
+using std::make_shared;
 using std::to_string;
 using std::make_shared;
 
@@ -71,6 +73,10 @@ public:
 	int getCpus() { return cpus; }
 
 	int getSshPort() { return sshPort; }
+
+	shared_ptr<InstanceInfo> getInstanceInfo() {
+		return make_shared<InstanceInfo>(std::to_string(id), templat->getName(), memory, cpus, sshPort, (int)isRunning());
+	}
 
 	shared_ptr<Template> getTemplate() { return templat; }
 

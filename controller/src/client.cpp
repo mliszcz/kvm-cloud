@@ -8,8 +8,7 @@
 #include "Thread/Thread.hpp"
 #include "Thread/Mutex.hpp"
 #include "Vm/Controller.hpp"
-#include "Net/Socket.hpp"
-#include "Net/ServerSocket.hpp"
+#include "Vm/ControllerProxy.hpp"
 #include "Util/Logger.hpp"
 #include "Util/Helpers.hpp"
 
@@ -25,12 +24,13 @@ using std::vector;
 using std::to_string;
 using std::shared_ptr;
 using std::make_shared;
+using std::cout;
 
+
+shared_ptr<Util::Logger> logger;
+shared_ptr<Vm::ControllerProxy> controller;
 
 int main(int argc, char** argv) {
-
-	shared_ptr<Net::Socket> socket;
-	shared_ptr<Util::Logger> logger;
 
 	logger = make_shared<Util::Logger>(std::cout);
 
@@ -41,9 +41,9 @@ int main(int argc, char** argv) {
 
 	try {
 		auto addr = Util::Helpers::explodeAddress(argv[1]);
-		socket = make_shared<Net::Socket>(addr.first, addr.second);
+		controller = make_shared<Vm::ControllerProxy>(addr.first, addr.second);
 	} catch(...) {
-		logger->log("cannot create socket");
+		logger->log("cannot create controller proxy");
 		return -1;
 	}
 
@@ -62,18 +62,49 @@ int main(int argc, char** argv) {
 			msg.push_back(token);
 		}
 
-		socket->write(msg);
-		socket->write(vector<string>{""});
+		if (msg[0] == "templates") {
 
-		auto res = socket->read();
+			for (auto kv : controller->getTemplates()) {
+				auto tmpl = kv.second;
+				cout << " - " + tmpl->getName() + " (" + tmpl->getDescription() + ")\n";
+			}
+		}
 
-		for (auto& r : res)
-			std::cout << "- " << r << "\n";
+		else if (msg[0] == "instances") {
+
+			cout << "   ID\t\ttemplate\tRAM\t\tCPUs\t\tSSH port\tstatus\n";
+
+			for (auto kv : controller->getInstances()) {
+				auto inst = kv.second;
+				cout << " - " << inst->getId() << "\t\t"
+					 << inst->getTemplate() << "\t\t"
+					 << inst->getMemory() << "\t\t"
+					 << inst->getCpus() << "\t\t"
+					 << inst->getSshPort() << "\t\t"
+					 << (inst->isRunning() ? "ONLINE" : "OFFLINE") << "\t\n";
+			}
+		}
+
+		else if (msg[0] == "new") {
+
+			try {
+				auto templ = controller->getTemplates();
+				auto inst = controller->instantiate(
+					templ[msg.at(1)], stoi(msg.at(2)), stoi(msg.at(3)));
+
+				cout << "   result: ID: " << inst->getId() << ", SSH port: " << inst->getSshPort() << "\n";
+			} catch(...) {
+				cout << "invalid arguments\n";
+			}
+		}
+
+		else {
+
+			cout << "unknown command\n";
+		}
 
 		std::cout << "\n> ";
 	}
-
-	socket->close();
 
 	return 0;
 }
