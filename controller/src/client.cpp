@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
 			try {
 				auto templ = controller->getTemplates();
 				auto inst = controller->instantiate(
-					templ[msg.at(1)], stoi(msg.at(2)), stoi(msg.at(3)));
+					templ.at(msg.at(1)), stoi(msg.at(2)), stoi(msg.at(3)));
 
 				cout << "   result: ID: " << inst->getId() << ", SSH port: " << inst->getSshPort() << "\n";
 			} catch(...) {

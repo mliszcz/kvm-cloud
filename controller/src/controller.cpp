@@ -44,7 +44,8 @@ shared_ptr<Net::ServerSocket> ssocket;
 shared_ptr<Util::Logger> 	   logger;
 
 
-class CommandHandler: public Thread::Thread<Thread::DetachState::Detached, Thread::CancelType::Deferred> {
+class CommandHandler:
+	public Thread::Thread<Thread::DetachState::Detached, Thread::CancelType::Deferred> {
 
 private:
 	std::shared_ptr<Net::Socket> socket;
@@ -53,82 +54,62 @@ public:
 	CommandHandler(std::shared_ptr<Net::Socket> _socket)
 		: socket(_socket) { }
 
+	~CommandHandler() {
+		socket->close();
+	}
+
 	virtual void run() {
 
 		for(;;) {
 
-		auto commands = socket->read();
-		auto cmd = commands.at(0);
-
-		logger->log("processing request: " + cmd);
-
-		if (cmd == "getTemplates") {
-			for (auto& kv : controller->getTemplates())
-				socket->write(kv.second->serialize());
-		}
-
-		else if (cmd == "getInstances") {
-			if (controller->getInstances().size() == 0)
-				socket->write("");
-			else
-				for (auto& kv : controller->getInstances())
-					socket->write(kv.second->getInstanceInfo()->serialize());
-		}
-
-		else if (cmd == "instantiate") {
-
-			auto inst = Vm::InstanceInfo::deserialize(vector<string>(commands.begin()+1, commands.end()));
-			auto tmpls = controller->getTemplates();
-
-			try {
-
-				auto tmplName = inst->getTemplate();
-
-				if (tmpls.find(tmplName) == tmpls.end()) {
-					// template not found
-					socket->write(inst->serialize());
-				} else {
-					auto tmpl = tmpls[tmplName];
-					auto realInst = controller->instantiate(tmpl, inst->getMemory(), inst->getCpus());
-					realInst->run();
-					socket->write(realInst->getInstanceInfo()->serialize());
-				}
-
-			} catch(...) {
-				// invalid arguments
-				socket->write(inst->serialize());
+			auto commands = socket->read();
+			auto cmd = commands.at(0);
+	
+			logger->log("processing request: " + cmd);
+	
+			if (cmd == "getTemplates") {
+				for (auto& kv : controller->getTemplates())
+					socket->write(kv.second->serialize());
 			}
-		}
+	
+			else if (cmd == "getInstances") {
+				if (controller->getInstances().size() == 0)
+					socket->write("");
+				else
+					for (auto& kv : controller->getInstances())
+						socket->write(kv.second->getInstanceInfo()->serialize());
+			}
+	
+			else if (cmd == "instantiate") {
 
-		// else if (cmd == "new") {
-		// 	try {
-		// 		auto name = commands.at(1);
-		// 		int mem = stoi(commands.at(2));
-		// 		int cpus = stoi(commands.at(3));
-
-		// 		auto tmpls = controller->getTemplates();
-
-		// 		if (tmpls.find(name) == tmpls.end()) {
-		// 			socket->write(vector<string>{"template not found"});
-		// 		} else {
-		// 			auto tmpl = tmpls[name];
-		// 			auto inst = controller->instantiate(tmpl, mem, cpus);
-		// 			inst->run();
-		// 			socket->write(vector<string>{"instantiated and listening at " + to_string(inst->getSshPort())});
-		// 		}
-
-		// 	} catch(...) {
-		// 		socket->write(vector<string>{"invalid arguments for 'new'"});
-		// 	}
-		// }
-
-		else {
-			socket->write(vector<string>{"unknown command"});
-		}
-
-		socket->write(vector<string>{""});
-
-		// socket->close();
+				auto inst = Vm::InstanceInfo::deserialize(vector<string>(commands.begin()+1, commands.end()));
+				auto tmpls = controller->getTemplates();
+	
+				try {
+	
+					auto tmplName = inst->getTemplate();
+	
+					if (tmpls.find(tmplName) == tmpls.end()) {
+						// template not found
+						socket->write(inst->serialize());
+					} else {
+						auto tmpl = tmpls[tmplName];
+						auto realInst = controller->instantiate(tmpl, inst->getMemory(), inst->getCpus());
+						realInst->run();
+						socket->write(realInst->getInstanceInfo()->serialize());
+					}
+	
+				} catch(...) {
+					// invalid arguments
+					socket->write(inst->serialize());
+				}
+			}
+	
+			else {
+				socket->write("unknown command");
+			}
+	
+			socket->send();
 		}
 	}
 };
