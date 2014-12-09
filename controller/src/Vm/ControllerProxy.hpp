@@ -62,8 +62,9 @@ public:
 		for (int i=0; i<data.size(); i += InstanceInfo::SERIAL_SIZE) {
 			auto inst = InstanceInfo::deserialize(vector<string>(data.begin()+i, data.begin()+i+InstanceInfo::SERIAL_SIZE));
 			result[inst->getId()] = inst;
-			return result;
 		}
+
+		return result;
 	}
 
 	shared_ptr<InstanceInfo> instantiate(shared_ptr<Template> templ, int memory, int cpus) {
