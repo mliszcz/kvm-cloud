@@ -49,7 +49,10 @@ int main(int argc, char** argv) {
 
 	string line;
 
-	std::cout << "> ";
+	cout << "KVM-cloud CLI\n";
+	cout << "type 'help' for list of all available commands\n\n";
+	cout << "> ";
+
 	while(std::getline(std::cin, line)) {
 
 		if (line == "exit") break;
@@ -62,9 +65,25 @@ int main(int argc, char** argv) {
 			msg.push_back(token);
 		}
 
+		if (msg.size() == 0) {
+			std::cout << "\n> ";
+			continue;
+		}
+
 		if (msg[0] == "help") {
 
-			cout << "help will be printed here\n";
+			cout << " - templates\n";
+			cout << "       list of all available templates\n";
+			cout << " - instances\n";
+			cout << "       list of all running VM instances\n";
+			cout << " - new <template> <memory> <cpus>\n";
+			cout << "       create new VM using given parameters\n";
+			cout << " - run <vm-id>\n";
+			cout << "       run VM with given id\n";
+			cout << " - kill <vm-id>\n";
+			cout << "       kill VM with given id\n";
+			cout << " - exit\n";
+			cout << "       exit CLI\n";
 		}
 
 		else if (msg[0] == "templates") {
@@ -85,7 +104,7 @@ int main(int argc, char** argv) {
 					 << inst->getTemplate() << "\t\t"
 					 << inst->getMemory() << "\t\t"
 					 << inst->getCpus() << "\t\t"
-					 << inst->getSshPort() << "\t\t"
+					 << (inst->isRunning() ? to_string(inst->getSshPort()) : "  -  ") << "\t\t"
 					 << (inst->isRunning() ? "ONLINE" : "OFFLINE") << "\t\n";
 			}
 		}
@@ -107,7 +126,7 @@ int main(int argc, char** argv) {
 		else if (msg[0] == "run") {
 
 			try {
-				cout << controller->run(msg.at(1)) ? "OK" : "ERROR\n";
+				cout << (controller->run(msg.at(1)) ? "OK\n" : "ERROR\n");
 			}
 			catch (...) {
 				cout << "invalid arguments\n";
@@ -117,7 +136,7 @@ int main(int argc, char** argv) {
 		else if (msg[0] == "kill") {
 
 			try {
-				cout << controller->kill(msg.at(1)) ? "OK" : "ERROR\n";
+				cout << (controller->kill(msg.at(1)) ? "OK\n" : "ERROR\n");
 			}
 			catch (...) {
 				cout << "invalid arguments\n";

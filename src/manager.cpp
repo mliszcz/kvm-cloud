@@ -184,7 +184,8 @@ public:
 						}
 					}
 
-					logger->warn("controller with id " + idParts.first + " not found");
+					if (!found)
+						logger->warn("controller with id " + idParts.first + " not found");
 				}
 
 				socket->write(to_string((int)result));
@@ -210,7 +211,8 @@ public:
 						}
 					}
 
-					logger->warn("controller with id " + idParts.first + " not found");
+					if (!found)
+						logger->warn("controller with id " + idParts.first + " not found");
 				}
 
 				socket->write(to_string((int)result));

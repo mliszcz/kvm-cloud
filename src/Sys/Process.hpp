@@ -83,7 +83,8 @@ public:
 	}
 
 	void kill() {
-		::kill(_pid, 9);
+		// ::kill(_pid, 9);
+		::kill(_pid, 2);
 	}
 
 	int getPid() {

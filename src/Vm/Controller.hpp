@@ -134,7 +134,7 @@ public:
 	}
 
 	bool run(int id) {
-		
+
 		if (!Util::Helpers::mapExists(instances, id)) {
 			logger->error("vm with id " + to_string(id) + " not found");
 			return false;
@@ -176,7 +176,8 @@ public:
 
 		if (!proc->isRunning()) return true;
 		proc->kill();
-		return !(proc->isRunning());
+		
+		return true;
 	}
 
 	shared_ptr<Instance> instantiate(shared_ptr<Template> templ, int memory, int cpus) {
