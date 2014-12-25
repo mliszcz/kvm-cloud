@@ -110,9 +110,17 @@ public:
 
 				bool result = false;
 
-				try {
-					result = controller->run(stoi(commands[1]));
-				}
+				try { result = controller->run(stoi(commands[1])); }
+				catch (...) { }
+
+				socket->write(to_string((int)result));
+			}
+
+			else if (cmd == "kill") {
+
+				bool result = false;
+
+				try { result = controller->kill(stoi(commands[1])); }
 				catch (...) { }
 
 				socket->write(to_string((int)result));

@@ -191,6 +191,32 @@ public:
 
 			}
 
+			else if (cmd == "kill") {
+				::Thread::ScopedLock lock(mutex);
+
+				bool result = false;
+
+				if (commands.size() < 2)
+					logger->error("id not provided");
+
+				else {
+					auto idParts = extractIdParts(commands[1]);
+					bool found = false;
+					for (auto& controller : controllers) {
+						if (controller->id == idParts.first) {
+							result = controller->proxy->kill(idParts.second);
+							found = true;
+							break;
+						}
+					}
+
+					logger->warn("controller with id " + idParts.first + " not found");
+				}
+
+				socket->write(to_string((int)result));
+
+			}
+
 			else {
 
 				socket->write("unknown command");

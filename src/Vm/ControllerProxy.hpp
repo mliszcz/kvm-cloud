@@ -84,6 +84,15 @@ public:
 
 		return (bool)stoi(socket->read()[0]);
 	}
+
+	bool kill(string fullId) {
+
+		socket-> write("kill")
+				.write(fullId)
+				.send();
+
+		return (bool)stoi(socket->read()[0]);
+	}
 };
 
 }

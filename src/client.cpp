@@ -107,7 +107,17 @@ int main(int argc, char** argv) {
 		else if (msg[0] == "run") {
 
 			try {
-				controller->run(msg.at(1));
+				cout << controller->run(msg.at(1)) ? "OK" : "ERROR\n";
+			}
+			catch (...) {
+				cout << "invalid arguments\n";
+			}
+		}
+
+		else if (msg[0] == "kill") {
+
+			try {
+				cout << controller->kill(msg.at(1)) ? "OK" : "ERROR\n";
 			}
 			catch (...) {
 				cout << "invalid arguments\n";
