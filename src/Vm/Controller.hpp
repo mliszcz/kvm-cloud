@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <dirent.h>
 
 #include "Template.hpp"
 #include "Instance.hpp"
@@ -101,7 +102,25 @@ public:
 
 		// load existing VMs
 
-		// TODO
+		struct dirent *de = nullptr;
+		DIR *d = nullptr;
+
+		if (!(d = opendir(workingDir.c_str())))
+			throw Util::Exception("Controller::Controller(...)", "failed to open working directory " + workingDir);
+
+		while (de = readdir(d)) {
+			try {
+				try {
+					restore(std::stoi(string(de->d_name)));
+				}
+				catch (std::invalid_argument& e) { }
+			}
+			catch (Util::Exception& ex) {
+				logger->error(ex.what());
+			}
+		}
+
+		closedir(d);
 	}
 
 	map<string, shared_ptr<Template>> getTemplates() {
@@ -156,7 +175,7 @@ public:
 	}
 
 	shared_ptr<Instance> restore(int id) {
-		Thread::ScopedLock lock(mutex);
+		// Thread::ScopedLock lock(mutex);
 
 		string instanceDir = mkInstDir(id);
 

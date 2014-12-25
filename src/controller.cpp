@@ -95,7 +95,7 @@ public:
 					} else {
 						auto tmpl = tmpls[tmplName];
 						auto realInst = controller->instantiate(tmpl, inst->getMemory(), inst->getCpus());
-						realInst->run();
+						controller->run(realInst->getId());
 						socket->write(realInst->getInstanceInfo()->serialize());
 					}
 	
@@ -108,7 +108,7 @@ public:
 			else {
 				socket->write("unknown command");
 			}
-	
+
 			socket->send();
 		}
 	}

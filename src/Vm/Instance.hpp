@@ -55,12 +55,6 @@ private:
 
 public:
 
-	bool run() {
-		if (process->isRunning()) return false;
-		process->run(true);
-		return process->isRunning();
-	}
-
 	int getId() 		{ return id; 		}
 	int getMemory() 	{ return memory; 	}
 	int getCpus() 		{ return cpus; 		}

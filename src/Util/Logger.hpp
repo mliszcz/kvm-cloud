@@ -55,7 +55,7 @@ private:
 	void output(const Level& messageLevel, const std::string& message) {
 		if (static_cast<int>(messageLevel) >= static_cast<int>(loggerLevel)) {
 			Thread::ScopedLock lock(mutex);
-			os << Helpers::printf("[%s] %s: %s",
+			os << Helpers::printf("[%s] %s : %s",
 				levelString(messageLevel).c_str(),
 				timeString().c_str(),
 				message.c_str()

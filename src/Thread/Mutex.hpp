@@ -19,7 +19,8 @@ public:
 
 	Mutex()
 	{
-		mutex = PTHREAD_MUTEX_INITIALIZER;
+		// mutex = PTHREAD_MUTEX_INITIALIZER;
+		mutex = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 	}
 
 	virtual ~Mutex()
