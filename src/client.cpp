@@ -62,7 +62,12 @@ int main(int argc, char** argv) {
 			msg.push_back(token);
 		}
 
-		if (msg[0] == "templates") {
+		if (msg[0] == "help") {
+
+			cout << "help will be printed here\n";
+		}
+
+		else if (msg[0] == "templates") {
 
 			for (auto kv : controller->getTemplates()) {
 				auto tmpl = kv.second;
@@ -76,7 +81,7 @@ int main(int argc, char** argv) {
 
 			for (auto kv : controller->getInstances()) {
 				auto inst = kv.second;
-				cout << " - " << inst->getId() << "\t\t"
+				cout << " - " << inst->getId() << "\t"
 					 << inst->getTemplate() << "\t\t"
 					 << inst->getMemory() << "\t\t"
 					 << inst->getCpus() << "\t\t"
@@ -96,6 +101,11 @@ int main(int argc, char** argv) {
 			} catch(...) {
 				cout << "invalid arguments\n";
 			}
+		}
+
+		else if (msg[0] == "run") {
+
+			//
 		}
 
 		else {

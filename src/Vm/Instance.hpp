@@ -59,6 +59,7 @@ public:
 	int getMemory() 	{ return memory; 	}
 	int getCpus() 		{ return cpus; 		}
 	int getSshPort() 	{ return sshPort; 	}
+	void setSshPort(int port) { sshPort = port; }
 
 	shared_ptr<Template> 		getTemplate() 	{ return templat; }
 	shared_ptr<Sys::Process> 	getProcess() 	{ return process; }

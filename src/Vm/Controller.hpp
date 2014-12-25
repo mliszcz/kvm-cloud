@@ -146,6 +146,17 @@ public:
 			return;
 		}
 
+
+		// port may be in use
+		int sshPort = inst->getSshPort();
+		if (!isPortFree(sshPort)) {
+			logger->warn("port " + to_string(sshPort) + " is already in use. searching for other port");
+			nextPort = findNextPort(nextPort);
+			Util::Cookie::write(mkInstDir(id) + "/.ssh", nextPort);
+			inst->setSshPort(nextPort);
+			logger->info("assigned new port " + to_string(nextPort));
+		}
+
 		inst->getProcess()->run();
 		Util::Cookie::write(mkInstDir(id) + "/.pid", inst->getProcess()->getPid());
 	}

@@ -144,6 +144,8 @@ public:
 								kv.second, request->getMemory(), request->getCpus()
 							);
 
+							inst->setId(makeFullId(controller->id, inst->getId()));
+
 							socket->write(inst->serialize());
 							tries = -100;
 							break;
