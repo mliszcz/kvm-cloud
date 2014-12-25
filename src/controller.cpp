@@ -65,7 +65,7 @@ public:
 			auto commands = socket->read();
 			auto cmd = commands.at(0);
 	
-			logger->log("processing request: " + cmd);
+			logger->info("processing request: " + cmd);
 	
 			if (cmd == "getTemplates") {
 				for (auto& kv : controller->getTemplates())
@@ -124,17 +124,17 @@ int main(int argc, char** argv) {
 	sigaction(SIGCHLD, &sigchld_action, nullptr);
 
 
-	logger 		= make_shared<Util::Logger>(std::cout);
+	logger 		= make_shared<Util::Logger>(Util::Logger::Level::INFO, std::cout);
 
 	if (argc < 4) {
-		logger->log("usage: controller <control-port> <initial-id> <initial-ssh-port>");
+		std::cout << "usage: controller <control-port> <initial-id> <initial-ssh-port>\n";
 		return -1;
 	}
 
 	ssocket 	= make_shared<Net::ServerSocket>(std::stoi(argv[1]));
 	controller 	= make_shared<Vm::Controller>(stoi(argv[2]), stoi(argv[3]), logger);
 
-	logger->log("VM Controller started!");
+	logger->info("VM Controller started!");
 
 	for (;;) {
 		try {
@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
 			handler->start();
 		}
 		catch(Util::Exception& ex) {
-			logger->log(ex.what());
+			logger->error(ex.what());
 		}
 	}
 

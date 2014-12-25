@@ -82,7 +82,7 @@ public:
 			auto commands = socket->read();
 			auto cmd = commands.at(0);
 
-			logger->log("processing request: " + cmd);
+			logger->info("processing request: " + cmd);
 	
 			if (cmd == "getTemplates") {
 
@@ -138,16 +138,16 @@ public:
 
 int main(int argc, char** argv) {
 
-	logger = make_shared<Util::Logger>(std::cout);
+	logger = make_shared<Util::Logger>(Util::Logger::Level::INFO, std::cout);
 
 	if (argc < 3) {
-		logger->log("usage: manager <control-port> <controllers-file>");
+		std::cout << "usage: manager <control-port> <controllers-file>\n";
 		return -1;
 	}
 
 	ssocket = make_shared<Net::ServerSocket>(stoi(argv[1]));
 
-	logger->log("manager started");
+	logger->info("manager started");
 
 	string s1;
 	string s2;
@@ -159,14 +159,14 @@ int main(int argc, char** argv) {
 				s1, addr.first, addr.second,
 			make_shared<Vm::ControllerProxy>(addr.first, addr.second));
 		} catch (...) {
-			logger->log("failed to connect to " + s1);
+			logger->error("failed to connect to " + s1);
 		}
 	}
 	fControl.close();
 
-	logger->log("supervised controllers:");
+	logger->info("supervised controllers:");
 	for (auto kv : controllers)
-		logger->log(
+		logger->info(
 			kv.second->id + ": " +
 			kv.second->address + ":" + to_string(kv.second->port)
 		);
@@ -178,7 +178,7 @@ int main(int argc, char** argv) {
 			handler->start();
 		}
 		catch(Util::Exception& ex) {
-			logger->log(ex.what());
+			logger->error(ex.what());
 		}
 	}
 

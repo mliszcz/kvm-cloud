@@ -21,6 +21,13 @@ public:
 			stoi(addr.substr(addr.find(":")+1))
 		);
 	}
+
+	template <typename ... Args>
+	static std::string printf(const std::string& format, Args ... args) {
+		char buffer[1024];
+		sprintf(buffer, format.c_str(), std::forward<Args>(args) ...);
+		return std::string(buffer);
+	}
 };
 
 }

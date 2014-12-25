@@ -32,10 +32,10 @@ shared_ptr<Vm::ControllerProxy> controller;
 
 int main(int argc, char** argv) {
 
-	logger = make_shared<Util::Logger>(std::cout);
+	logger = make_shared<Util::Logger>(Util::Logger::Level::INFO, std::cout);
 
 	if (argc < 2) {
-		logger->log("usage: client <controller-address:controller-port>");
+		std::cout << "usage: client <controller-address:controller-port>\n";
 		return -1;
 	}
 
@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 		auto addr = Util::Helpers::explodeAddress(argv[1]);
 		controller = make_shared<Vm::ControllerProxy>(addr.first, addr.second);
 	} catch(...) {
-		logger->log("cannot create controller proxy");
+		logger->error("cannot create controller proxy");
 		return -1;
 	}
 

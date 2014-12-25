@@ -94,7 +94,7 @@ private:
 		Util::Cookie::write(instanceDir + "/.cpus", inst->getCpus());
 		Util::Cookie::write(instanceDir + "/.ssh", inst->getSshPort());
 
-		logger->log("instantiating " + templ->getName() +
+		logger->info("instantiating " + templ->getName() +
 			" (id " + to_string(id) + ") at port " + to_string(inst->getSshPort()));
 
 		return inst;
@@ -103,7 +103,7 @@ private:
 public:
 
 	Controller(int _initialId, int _initialPort,
-		shared_ptr<Util::Logger> _logger = make_shared<Util::Logger>(std::cout))
+		shared_ptr<Util::Logger> _logger = make_shared<Util::Logger>(Util::Logger::Level::INFO, std::cout))
 		: nextId(_initialId), nextPort(_initialPort), logger(_logger) {
 
 		// initialize templates
@@ -158,7 +158,7 @@ public:
 			throw Util::Exception("Controller::restore(int)", "instnace with given id does not exist");
 
 		if (instances.find(id) != instances.end()) {
-			logger->log("id collision on restoring; assigning new id");
+			logger->info("id collision on restoring; assigning new id");
 			while(dirExists(mkInstDir(++nextId)));
 			id = nextId;
 			Sys::Process("/bin/mkdir", std::vector<string>{instanceDir}).run();
