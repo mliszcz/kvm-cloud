@@ -96,7 +96,7 @@ public:
 					} else {
 						auto tmpl = tmpls[tmplName];
 						auto realInst = controller->instantiate(tmpl, inst->getMemory(), inst->getCpus());
-						controller->run(realInst->getId());
+						// controller->run(realInst->getId());
 						socket->write(realInst->getInstanceInfo()->serialize());
 					}
 	
@@ -104,6 +104,18 @@ public:
 					// invalid arguments
 					socket->write(inst->serialize());
 				}
+			}
+
+			else if (cmd == "run") {
+
+				bool result = false;
+
+				try {
+					result = controller->run(stoi(commands[1]));
+				}
+				catch (...) { }
+
+				socket->write(to_string((int)result));
 			}
 	
 			else {

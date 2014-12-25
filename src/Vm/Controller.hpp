@@ -133,17 +133,17 @@ public:
 		return instances;
 	}
 
-	void run(int id) {
+	bool run(int id) {
 		if (!Util::Helpers::mapExists(instances, id)) {
 			logger->error("vm with id " + to_string(id) + " not found");
-			return;
+			return false;
 		}
 
 		auto inst = instances[id];
 
 		if (inst->getProcess()->isRunning()) {
 			logger->error("vm with id " + to_string(id) + " is already running");
-			return;
+			return false;
 		}
 
 
@@ -159,6 +159,7 @@ public:
 
 		inst->getProcess()->run();
 		Util::Cookie::write(mkInstDir(id) + "/.pid", inst->getProcess()->getPid());
+		return true;
 	}
 
 	shared_ptr<Instance> instantiate(shared_ptr<Template> templ, int memory, int cpus) {

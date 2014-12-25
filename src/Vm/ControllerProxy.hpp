@@ -75,6 +75,15 @@ public:
 
 		return InstanceInfo::deserialize(socket->read());
 	}
+
+	bool run(string fullId) {
+
+		socket-> write("run")
+				.write(fullId)
+				.send();
+
+		return (bool)stoi(socket->read()[0]);
+	}
 };
 
 }

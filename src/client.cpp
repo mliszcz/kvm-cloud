@@ -98,14 +98,20 @@ int main(int argc, char** argv) {
 					templ.at(msg.at(1)), stoi(msg.at(2)), stoi(msg.at(3)));
 
 				cout << "   result: ID: " << inst->getId() << ", SSH port: " << inst->getSshPort() << "\n";
-			} catch(...) {
+			}
+			catch (...) {
 				cout << "invalid arguments\n";
 			}
 		}
 
 		else if (msg[0] == "run") {
 
-			//
+			try {
+				controller->run(msg.at(1));
+			}
+			catch (...) {
+				cout << "invalid arguments\n";
+			}
 		}
 
 		else {

@@ -17,6 +17,7 @@
 #include <memory>
 #include <iostream>
 #include <fstream>
+#include <utility>
 
 #include "Thread/Thread.hpp"
 #include "Thread/Mutex.hpp"
@@ -35,6 +36,7 @@ using std::to_string;
 using std::shared_ptr;
 using std::make_shared;
 using std::stoi;
+using std::pair;
 
 
 class ControllerRef {
@@ -74,8 +76,10 @@ private:
 		return serverName + "/" + numericId;
 	}
 
-	string extractId(string fullId) {
-		return fullId.substr(fullId.find("/")+1);
+	std::pair<string, string> extractIdParts(string fullId) {
+		auto id = fullId.substr(fullId.find("/")+1);
+		auto srv = fullId.substr(0, fullId.find("/"));
+		return std::make_pair(srv, id);
 	}
 
 	int advanceModulo(int base) {
@@ -132,6 +136,7 @@ public:
 
 				while(tries --> 0) {
 
+					nextController = advanceModulo(nextController);
 					auto controller = controllers[nextController];
 					auto templates = controller->proxy->getTemplates();
 
@@ -150,10 +155,7 @@ public:
 							tries = -100;
 							break;
 						}
-					}
-
-					if (tries > -10)
-						nextController = advanceModulo(nextController);
+					}	
 				}
 
 				if (tries > -10) {
@@ -163,6 +165,32 @@ public:
 				}
 			}
 
+			else if (cmd == "run") {
+				::Thread::ScopedLock lock(mutex);
+
+				bool result = false;
+
+				if (commands.size() < 2)
+					logger->error("id not provided");
+
+				else {
+					auto idParts = extractIdParts(commands[1]);
+					bool found = false;
+					for (auto& controller : controllers) {
+						if (controller->id == idParts.first) {
+							result = controller->proxy->run(idParts.second);
+							found = true;
+							break;
+						}
+					}
+
+					logger->warn("controller with id " + idParts.first + " not found");
+				}
+
+				socket->write(to_string((int)result));
+
+			}
+
 			else {
 
 				socket->write("unknown command");
@@ -170,12 +198,6 @@ public:
 
 			socket->send();
 		}
-
-		{
-			::Thread::ScopedLock lock(mutex);
-			nextController = advanceModulo(nextController);
-		}
-
 	}
 };
 
