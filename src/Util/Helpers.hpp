@@ -4,6 +4,7 @@
 
 #include <string>
 #include <utility>
+#include <map>
 
 #include "Exception.hpp"
 
@@ -27,6 +28,11 @@ public:
 		char buffer[1024];
 		sprintf(buffer, format.c_str(), std::forward<Args>(args) ...);
 		return std::string(buffer);
+	}
+
+	template <typename K, typename V>
+	static bool mapExists(const std::map<K,V>& map, const K& key) {
+		return map.find(key) != map.end();
 	}
 };
 

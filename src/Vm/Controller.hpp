@@ -22,6 +22,8 @@
 #include "../Util/Logger.hpp"
 #include "../Util/Exception.hpp"
 #include "../Util/Cookie.hpp"
+#include "../Sys/Process.hpp"
+
 
 using std::map;
 using std::string;
@@ -44,7 +46,7 @@ private:
 	map<string, shared_ptr<Template>> 	templates;
 	map<int, 	shared_ptr<Instance>> 	instances;
 
-	string workingDir = "/tmp";
+	string workingDir;
 
 	void copyFile(string from, string to) {
 		std::ifstream  src(from.c_str(), std::ios::binary);
@@ -67,44 +69,26 @@ private:
 				(((myStat.st_mode) & S_IFMT) == S_IFDIR);
 	}
 
+	int findNextId(int baseId) {
+		while(dirExists(mkInstDir(baseId)) || Util::Helpers::mapExists(instances, baseId)) ++baseId;
+		return baseId;
+	}
+
+	int findNextPort(int basePort) {
+		while(!isPortFree(++basePort));
+		return basePort;
+	}
+
 	string mkInstDir(int id) {
 		return workingDir + "/" + to_string(id);
 	}
 
 
-	shared_ptr<Instance> createInstance(shared_ptr<Template> templ, int memory, int cpus, int id, int port,
-		string kernelPath, string rootfsPath) {
-
-		auto inst = shared_ptr<Instance>(new Instance(
-			id,
-			templ,
-			kernelPath,
-			rootfsPath,
-			memory,
-			cpus,
-			port
-		));
-
-		instances[id] = inst;
-
-		string instanceDir = workingDir + "/" + to_string(id);
-
-		Util::Cookie::write(instanceDir + "/.template", templ->getName());
-		Util::Cookie::write(instanceDir + "/.memory", inst->getMemory());
-		Util::Cookie::write(instanceDir + "/.cpus", inst->getCpus());
-		Util::Cookie::write(instanceDir + "/.ssh", inst->getSshPort());
-
-		logger->info("instantiating " + templ->getName() +
-			" (id " + to_string(id) + ") at port " + to_string(inst->getSshPort()));
-
-		return inst;
-	}
-
 public:
 
-	Controller(int _initialId, int _initialPort,
+	Controller(const std::string& _workingDir, int _initialId, int _initialPort,
 		shared_ptr<Util::Logger> _logger = make_shared<Util::Logger>(Util::Logger::Level::INFO, std::cout))
-		: nextId(_initialId), nextPort(_initialPort), logger(_logger) {
+		: workingDir(_workingDir), nextId(_initialId), nextPort(_initialPort), logger(_logger) {
 
 		// initialize templates
 
@@ -130,23 +114,45 @@ public:
 		return instances;
 	}
 
+	void run(int id) {
+		if (!Util::Helpers::mapExists(instances, id)) {
+			logger->error("vm with id " + to_string(id) + " not found");
+			return;
+		}
+
+		auto inst = instances[id];
+
+		if (inst->getProcess()->isRunning()) {
+			logger->error("vm with id " + to_string(id) + " is already running");
+			return;
+		}
+
+		inst->getProcess()->run();
+		Util::Cookie::write(mkInstDir(id) + "/.pid", inst->getProcess()->getPid());
+	}
+
 	shared_ptr<Instance> instantiate(shared_ptr<Template> templ, int memory, int cpus) {
 		Thread::ScopedLock lock(mutex);
 
-		while(!isPortFree(++nextPort));
-		while(dirExists(mkInstDir(++nextId)));
+		nextPort = findNextPort(nextPort);
+		nextId = findNextId(nextId);
 
 		string instanceDir = mkInstDir(nextId); 
+		Sys::Process("/bin/mkdir", std::vector<string>{instanceDir}).runAndWait();
+
 		string kernelPath = instanceDir + "/kernel";
 		string rootfsPath = instanceDir + "/rootfs.img";
 
-		Sys::Process("/bin/mkdir", std::vector<string>{instanceDir}).runAndWait();
-		// usleep(500000);
-		
 		copyFile(templ->_kernelPath, kernelPath);
 		copyFile(templ->_rootfsPath, rootfsPath);
 
-		return createInstance(templ, memory, cpus, nextId, nextPort, kernelPath, rootfsPath);
+		Util::Cookie::write(instanceDir + "/.template", templ->getName());
+		Util::Cookie::write(instanceDir + "/.memory", memory);
+		Util::Cookie::write(instanceDir + "/.cpus", cpus);
+		Util::Cookie::write(instanceDir + "/.ssh", nextPort);
+		Util::Cookie::write(instanceDir + "/.pid", 0);
+
+		return restore(nextId);
 	}
 
 	shared_ptr<Instance> restore(int id) {
@@ -157,15 +163,8 @@ public:
 		if (!dirExists(instanceDir))
 			throw Util::Exception("Controller::restore(int)", "instnace with given id does not exist");
 
-		if (instances.find(id) != instances.end()) {
-			logger->info("id collision on restoring; assigning new id");
-			while(dirExists(mkInstDir(++nextId)));
-			id = nextId;
-			Sys::Process("/bin/mkdir", std::vector<string>{instanceDir}).run();
-			usleep(500000);
-
-			Sys::Process("/bin/mv", std::vector<string>{instanceDir, mkInstDir(id)}).runAndWait();
-			instanceDir = mkInstDir(id);
+		if (Util::Helpers::mapExists(instances, id)) {
+			return instances[id];
 		}
 
 		string kernelPath = instanceDir + "/kernel";
@@ -175,20 +174,63 @@ public:
 		int memory;
 		int cpus;
 		int sshPort;
+		int pid;
 
 		try {
 			tempName 	= Util::Cookie::read<string>(instanceDir + "/.template");
 			memory 		= Util::Cookie::read<int>(instanceDir + "/.memory");
 			cpus 		= Util::Cookie::read<int>(instanceDir + "/.cpus");
 			sshPort 	= Util::Cookie::read<int>(instanceDir + "/.ssh");
+			pid 		= Util::Cookie::read<int>(instanceDir + "/.pid");
 		} catch(...) {
 			throw Util::Exception("Controller::restore(int)", "vm metadata is corrupted");
 		}
 
-		if (!isPortFree(sshPort))
-			while(!isPortFree(++nextPort));
+		// port may be taken already
 
-		return createInstance(templates[tempName], memory, cpus, nextId, nextPort, kernelPath, rootfsPath);
+		if (!isPortFree(sshPort)) {
+			nextPort = findNextPort(nextPort);
+			Util::Cookie::write(instanceDir + "/.ssh", nextPort);
+			sshPort = nextPort;
+		}
+
+
+		// prepare process instance
+
+		vector<string> vmArgs {
+			"-c",
+			"''/usr/bin/kvm -m " + to_string(memory)
+			+" -smp " + to_string(cpus)
+			+" -redir tcp:" + to_string(sshPort) + "::22"
+			+" -kernel " + kernelPath
+			+" -hda " + rootfsPath
+			+" -boot c"
+			+" -append \"root=/dev/sda console=ttyS0\""
+			+" -nographic"
+			+" -enable-kvm''"
+		};
+
+		auto process = make_shared<Sys::Process>("/bin/bash", vmArgs);
+
+		if (!Util::Helpers::mapExists(templates, tempName)) {
+			throw Util::Exception("Controller::restore(int)", "template " + tempName + " is missing");
+		}
+
+		auto inst = shared_ptr<Instance>(new Instance(
+			id,
+			memory,
+			cpus,
+			sshPort,
+			templates[tempName],
+			process
+		));
+
+		instances[id] = inst;
+
+		logger->info("instantiating " + templates[tempName]->getName() +
+			" (id " + to_string(id) + ") at port " + to_string(inst->getSshPort()));
+
+		return inst;
 	}
 };
 

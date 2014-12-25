@@ -16,6 +16,8 @@ using std::make_shared;
 using std::to_string;
 using std::make_shared;
 
+using Sys::Process;
+
 namespace Vm {
 
 class Controller;
@@ -31,67 +33,51 @@ private:
 	int cpus;
 	int sshPort;
 
-	shared_ptr<Sys::Process> process;
+	shared_ptr<Process>  process;
 	shared_ptr<Template> templat;
 
 	Instance(
 		int _id,
-		shared_ptr<Template> _templat,
-		string kernelPath,
-		string rootfsPath,
+		// string kernelPath,
+		// string rootfsPath,
 		int _memory,
 		int _cpus,
-		int _sshPort)
+		int _sshPort,
+		shared_ptr<Template> _templat,
+		shared_ptr<Process>  _process
+		)
 		: id(_id)
-		, templat(_templat)
 		, memory(_memory)
 		, cpus(_cpus)
-		, sshPort(_sshPort) {
-
-		vector<string> vmArgs {
-			"-c",
-			"''/usr/bin/kvm -m " + to_string(memory)
-			+" -smp " + to_string(cpus)
-			+" -redir tcp:" + to_string(sshPort) + "::22"
-			+" -kernel " + kernelPath
-			+" -hda " + rootfsPath
-			+" -boot c"
-			+" -append \"root=/dev/sda console=ttyS0\""
-			+" -nographic"
-			+" -enable-kvm''"
-		};
-
-		process = make_shared<Sys::Process>("/bin/bash", vmArgs);
-	}
+		, sshPort(_sshPort)
+		, templat(_templat)
+		, process(_process) { }
 
 public:
 
-	int getId() { return id; }
-
-	int getMemory() { return memory; }
-
-	int getCpus() { return cpus; }
-
-	int getSshPort() { return sshPort; }
-
-	shared_ptr<InstanceInfo> getInstanceInfo() {
-		return make_shared<InstanceInfo>(std::to_string(id), templat->getName(), memory, cpus, sshPort, (int)isRunning());
-	}
-
-	shared_ptr<Template> getTemplate() { return templat; }
-
 	bool run() {
-		if (isRunning()) return false;
+		if (process->isRunning()) return false;
 		process->run(true);
-		return isRunning();
-	}
-
-	bool isRunning() {
 		return process->isRunning();
 	}
 
-	void kill() {
-		process->kill();
+	int getId() 		{ return id; 		}
+	int getMemory() 	{ return memory; 	}
+	int getCpus() 		{ return cpus; 		}
+	int getSshPort() 	{ return sshPort; 	}
+
+	shared_ptr<Template> 		getTemplate() 	{ return templat; }
+	shared_ptr<Sys::Process> 	getProcess() 	{ return process; }
+
+	shared_ptr<InstanceInfo> getInstanceInfo() {
+		return make_shared<InstanceInfo>(
+			std::to_string(id),
+			templat->getName(),
+			memory,
+			cpus,
+			sshPort,
+			(int)(process->isRunning())
+		);
 	}
 };
 

@@ -15,6 +15,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "../Util/Exception.hpp"
+
 
 using std::map;;
 using std::string;
@@ -24,18 +26,28 @@ namespace Sys {
 
 class Process {
 private:
-	pid_t _pid = 0;
 
 	string _path;
 	vector<string> _opts;
 
+	pid_t _pid;
+
 public:
-	Process(string path, vector<string> opts = vector<string>())
-		: _path(path), _opts(opts) { }
+	Process(string path, vector<string> opts = vector<string>(), int pid = 0)
+		: _path(path), _opts(opts), _pid(pid) { }
+
+	// Process(int pid)
+	// : _pid(pid) {
+	// 	if (!isRunning())
+	// 		throw Util::Exception("Process::Process(int)", "attempt to attach to non-existent process");
+	// }
 
 	~Process() = default;
 
 	pid_t run(bool silent = true) {
+
+		if (isRunning())
+			throw Util::Exception("Process::run(bool)", "attempt to run running process");
 
 		_pid = fork();
 
@@ -72,6 +84,10 @@ public:
 
 	void kill() {
 		::kill(_pid, 9);
+	}
+
+	int getPid() {
+		return static_cast<int>(_pid);
 	}
 
 	void wait() {

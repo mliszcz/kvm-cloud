@@ -126,13 +126,13 @@ int main(int argc, char** argv) {
 
 	logger 		= make_shared<Util::Logger>(Util::Logger::Level::INFO, std::cout);
 
-	if (argc < 4) {
-		std::cout << "usage: controller <control-port> <initial-id> <initial-ssh-port>\n";
+	if (argc < 5) {
+		std::cout << "usage: controller <control-port> <working-dir> <initial-id> <initial-ssh-port>\n";
 		return -1;
 	}
 
 	ssocket 	= make_shared<Net::ServerSocket>(std::stoi(argv[1]));
-	controller 	= make_shared<Vm::Controller>(stoi(argv[2]), stoi(argv[3]), logger);
+	controller 	= make_shared<Vm::Controller>(string(argv[2]), stoi(argv[3]), stoi(argv[4]), logger);
 
 	logger->info("VM Controller started!");
 
