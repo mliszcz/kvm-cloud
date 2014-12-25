@@ -91,6 +91,7 @@ public:
 	
 					if (tmpls.find(tmplName) == tmpls.end()) {
 						// template not found
+						logger->warn("non-existent template " + tmplName + " instantiation required");
 						socket->write(inst->serialize());
 					} else {
 						auto tmpl = tmpls[tmplName];

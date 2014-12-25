@@ -44,6 +44,7 @@ public:
 		, _running(running) { }
 
 	string getId() { return _id; }
+	void setId(string id) { _id = id; }
 	string getTemplate() { return _templ; }
 	int getMemory() { return _memory; }
 	int getCpus() { return _cpus; }

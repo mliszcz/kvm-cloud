@@ -20,6 +20,7 @@
 
 #include "Thread/Thread.hpp"
 #include "Thread/Mutex.hpp"
+#include "Thread/ScopedLock.hpp"
 #include "Vm/Controller.hpp"
 #include "Vm/ControllerProxy.hpp"
 #include "Net/Socket.hpp"
@@ -57,8 +58,10 @@ public:
 
 shared_ptr<Net::ServerSocket> ssocket;
 shared_ptr<Util::Logger> 	   logger;
+shared_ptr<Thread::Mutex> 		mutex;
 
-map<string, shared_ptr<ControllerRef>> controllers;
+vector<shared_ptr<ControllerRef>> controllers;
+int nextController = 0;
 
 
 class CommandHandler:
@@ -66,6 +69,18 @@ class CommandHandler:
 
 private:
 	std::shared_ptr<Net::Socket> socket;
+
+	string makeFullId(string serverName, string numericId) {
+		return serverName + "/" + numericId;
+	}
+
+	string extractId(string fullId) {
+		return fullId.substr(fullId.find("/")+1);
+	}
+
+	int advanceModulo(int base) {
+		return ++base % controllers.size();
+	}
 
 public:
 	CommandHandler(std::shared_ptr<Net::Socket> _socket)
@@ -85,42 +100,64 @@ public:
 			logger->info("processing request: " + cmd);
 	
 			if (cmd == "getTemplates") {
+				::Thread::ScopedLock lock(mutex);
 
-				//TODO: collect templates from all controllers
-				auto ctrl = controllers.begin()->second->proxy;
-
-				for (auto& kv : ctrl->getTemplates())
-					socket->write(kv.second->serialize());
-
+				for (auto& controller : controllers) {
+					for (auto& kv : controller->proxy->getTemplates()) {
+						socket->write(kv.second->serialize());
+					}
+				}
 			}
 
 			else if (cmd == "getInstances") {
+				::Thread::ScopedLock lock(mutex);
 
-				//TODO: collect templates from all controllers
-				auto ctrl = controllers.begin()->second->proxy;
-				auto insts = ctrl->getInstances();
-
-				if (insts.size() == 0)
-					socket->write("");
-				else
-					for (auto& kv : insts) {
-						socket->write(kv.second->serialize());
+				for (auto& controller : controllers) {
+					for (auto& kv : controller->proxy->getInstances()) {
+						auto instance = kv.second;
+						auto fullId = makeFullId(controller->id, instance->getId());
+						instance->setId(fullId);
+						socket->write(instance->serialize());
 					}
+				}
 			}
 
 			else if (cmd == "instantiate") {
+				::Thread::ScopedLock lock(mutex);
 
-				auto ctrl = controllers.begin()->second->proxy;
+				auto request = Vm::InstanceInfo::deserialize(vector<string>(commands.begin()+1, commands.end()));
+				auto templName = request->getTemplate();
 
-				auto req = Vm::InstanceInfo::deserialize(vector<string>(commands.begin()+1, commands.end()));
+				int tries = controllers.size();
 
-				auto templ = ctrl->getTemplates();
+				while(tries --> 0) {
 
-				try {
-					auto inst = ctrl->instantiate(templ.at(req->getTemplate()), req->getMemory(), req->getCpus());
-					socket->write(inst->serialize());
-				} catch (...) {
-					socket->write(req->serialize());
+					auto controller = controllers[nextController];
+					auto templates = controller->proxy->getTemplates();
+
+					for (auto& kv : templates) {
+
+						if (kv.first == templName) {
+
+							// ok, next controller offers this template
+							auto inst = controller->proxy->instantiate(
+								kv.second, request->getMemory(), request->getCpus()
+							);
+
+							socket->write(inst->serialize());
+							tries = -100;
+							break;
+						}
+					}
+
+					if (tries > -10)
+						nextController = advanceModulo(nextController);
+				}
+
+				if (tries > -10) {
+					logger->warn("unable to find controller with template " + templName);
+					// echo-response
+					socket->write(request->serialize());
 				}
 			}
 
@@ -132,6 +169,11 @@ public:
 			socket->send();
 		}
 
+		{
+			::Thread::ScopedLock lock(mutex);
+			nextController = advanceModulo(nextController);
+		}
+
 	}
 };
 
@@ -139,6 +181,7 @@ public:
 int main(int argc, char** argv) {
 
 	logger = make_shared<Util::Logger>(Util::Logger::Level::INFO, std::cout);
+	mutex = make_shared<Thread::Mutex>();
 
 	if (argc < 3) {
 		std::cout << "usage: manager <control-port> <controllers-file>\n";
@@ -155,20 +198,22 @@ int main(int argc, char** argv) {
 	while(fControl >> s1 && fControl >> s2) {
 		auto addr = Util::Helpers::explodeAddress(s2);
 		try {
-			controllers[s1] = make_shared<ControllerRef>(
-				s1, addr.first, addr.second,
-			make_shared<Vm::ControllerProxy>(addr.first, addr.second));
+			controllers.push_back(
+				make_shared<ControllerRef>(
+					s1, addr.first, addr.second,
+					make_shared<Vm::ControllerProxy>(addr.first, addr.second)
+				)
+			);
 		} catch (...) {
-			logger->error("failed to connect to " + s1);
+			logger->error("failed to connect to " + s1 + " controller instance");
 		}
 	}
 	fControl.close();
 
 	logger->info("supervised controllers:");
-	for (auto kv : controllers)
+	for (auto ctrl : controllers)
 		logger->info(
-			kv.second->id + ": " +
-			kv.second->address + ":" + to_string(kv.second->port)
+			ctrl->id + ": " + ctrl->address + ":" + to_string(ctrl->port)
 		);
 
 	for (;;) {
