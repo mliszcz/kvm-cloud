@@ -35,6 +35,7 @@ class Socket
 private:
 
 	int sockFD;
+	int writeCount = 0;
 
 	Socket(int sockFD)
 	{
@@ -86,18 +87,21 @@ public:
 
 	Socket& write(const std::vector<std::string>& data)
 	{
+		writeCount += data.size();
 		for (auto& d : data) write(d);
 		return *this;
 	}
 
 	Socket& write(const std::string& d)
 	{
+		writeCount++;
 		::write(sockFD, (d+"\r\n").c_str(), d.size()+2);
 		return *this;
 	}
 
 	void send()
 	{
+		if (writeCount == 0) write("");
 		write("");
 	}
 };
