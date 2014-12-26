@@ -87,7 +87,7 @@ Now, create two VMs using Cirros template, both with 64M RAM and 2 CPUs:
 > 
 ```
 
-To run instance, use `run` command. List instances one more time to check what port was assigned:
+To run instance, use `run` command. List instances one more time to check which port was assigned:
 ```
 > run s2/2000
 OK
@@ -99,7 +99,7 @@ OK
 ```
 Instance *s2/2000* is now ONLINE and port 2301 on s2 controller forwards traffic to port 22 on *s2/2000* instance.
 
-Test connection using SSH. *NOTE: cirros login is 'cirros' and password is 'cubswin:)'.*
+Test connection using SSH. Log in with 'cirros' username and 'cubswin:)' password.
 ```
 $ ssh -p 2301 cirros@127.0.0.1
 cirros@127.0.0.1's password: 
@@ -107,3 +107,5 @@ $ uname -a
 Linux cirros 3.2.0-68-virtual #102-Ubuntu SMP Tue Aug 12 22:14:39 UTC 2014 x86_64 GNU/Linux
 $ 
 ```
+
+You can shutdown VM typing `sudo poweroff` in the ssh session, using `kill` command in the client CLI or manually killing QEMU process.
