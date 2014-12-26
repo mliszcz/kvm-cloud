@@ -68,31 +68,31 @@ $ ./out/client 127.0.0.1:8050
 KVM-cloud CLI
 type 'help' for list of all available commands
 
-\>
+>
 ```
 
 Now, create two VMs using Cirros template, both with 64M RAM and 2 CPUs:
 ```
-\> new cirros 64 2
+> new cirros 64 2
    result: ID: s2/2000, SSH port: 2301
 
-\> new cirros 64 2
+> new cirros 64 2
    result: ID: s1/1000, SSH port: 2201
 
-\> instances
+> instances
    ID		template	RAM		CPUs		SSH port	status
  - s1/1000	cirros		64		2		  -  		OFFLINE	
  - s2/2000	cirros		64		2		  -  		OFFLINE	
 
-\> 
+> 
 ```
 
 To run instance, use `run` command. List instances one more time to check what port was assigned:
 ```
-\> run s2/2000
+> run s2/2000
 OK
 
-\> instances
+> instances
    ID		template	RAM		CPUs		SSH port	status
  - s1/1000	cirros		64		2		  -  		OFFLINE	
  - s2/2000	cirros		64		2		2301		ONLINE	
