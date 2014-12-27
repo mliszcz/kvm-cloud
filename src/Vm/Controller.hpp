@@ -192,6 +192,7 @@ public:
 		string kernelPath = instanceDir + "/kernel";
 		string rootfsPath = instanceDir + "/rootfs.img";
 
+		if (!templ->_kernelPath.empty())
 		copyFile(templ->_kernelPath, kernelPath);
 		copyFile(templ->_rootfsPath, rootfsPath);
 
@@ -218,6 +219,10 @@ public:
 
 		string kernelPath = instanceDir + "/kernel";
 		string rootfsPath = instanceDir + "/rootfs.img";
+
+		std::ifstream kernelFile(kernelPath.c_str());
+		bool withKernel = kernelFile;
+		kernelFile.close();
 
 		string tempName;
 		int memory;
@@ -251,10 +256,10 @@ public:
 			"''/usr/bin/kvm -m " + to_string(memory)
 			+" -smp " + to_string(cpus)
 			+" -redir tcp:" + to_string(sshPort) + "::22"
-			+" -kernel " + kernelPath
+			+(withKernel ? (" -kernel " + kernelPath) : string(""))
 			+" -hda " + rootfsPath
 			+" -boot c"
-			+" -append \"root=/dev/sda console=ttyS0\""
+			+(withKernel ? " -append \"root=/dev/sda console=ttyS0\"" : "")
 			+" -nographic"
 			+" -enable-kvm''"
 		};
