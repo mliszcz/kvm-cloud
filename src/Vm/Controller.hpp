@@ -100,6 +100,14 @@ public:
 			"templates/cirros/cirros-0.3.3-x86_64-rootfs-non_ec2.img"
 		));
 
+		templates["wheezy"] = shared_ptr<Template>(new Template(
+			"wheezy",
+			"Debian Wheezy AMD64.",
+			"",
+			"templates/wheezy/debian_wheezy_amd64_standard.qcow2"
+		));
+
+
 		// load existing VMs
 
 		struct dirent *de = nullptr;
