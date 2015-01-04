@@ -103,7 +103,7 @@ public:
 		templates["wheezy"] = shared_ptr<Template>(new Template(
 			"wheezy",
 			"Debian Wheezy AMD64.",
-			"",
+			"-none-",
 			"templates/wheezy/debian_wheezy_amd64_standard.qcow2"
 		));
 
@@ -200,7 +200,7 @@ public:
 		string kernelPath = instanceDir + "/kernel";
 		string rootfsPath = instanceDir + "/rootfs.img";
 
-		if (!templ->_kernelPath.empty())
+		if (templ->_kernelPath != "-none-")
 		copyFile(templ->_kernelPath, kernelPath);
 		copyFile(templ->_rootfsPath, rootfsPath);
 
@@ -251,6 +251,7 @@ public:
 		string append = "";
 		try {
 			append = Util::Cookie::read<string>(instanceDir + "/.append");
+			logger->info("append string: " + append);
 		} catch(...) { }
 
 		// port may be taken already

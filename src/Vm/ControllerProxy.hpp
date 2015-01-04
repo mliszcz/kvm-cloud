@@ -48,8 +48,9 @@ public:
 		for (int i=0; i<data.size(); i += Template::SERIAL_SIZE) {
 			auto tmpl = Template::deserialize(vector<string>(data.begin()+i, data.begin()+i+Template::SERIAL_SIZE));
 			result[tmpl->getName()] = tmpl;
-			return result;
 		}
+
+		return result;
 	}
 
 	map<string, shared_ptr<InstanceInfo>> getInstances() {

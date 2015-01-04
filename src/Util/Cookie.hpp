@@ -28,10 +28,19 @@ public:
 		T data;
 		ifstream fin(cookie);
 		if (!fin) throw Exception("Cookie::read(string)", "file does not exist");
-		fin >> std::noskipws >> data;
+		fin >> data;
 		return data;
 	}
 };
+
+template <>
+string Cookie::read(string cookie) {
+	string data;
+	ifstream fin(cookie);
+	if (!fin) throw Exception("Cookie::read(string)", "file does not exist");
+	std::getline(fin, data);
+	return data;
+}
 
 }
 
