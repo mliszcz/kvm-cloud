@@ -248,6 +248,11 @@ public:
 			throw Util::Exception("Controller::restore(int)", "vm metadata is corrupted");
 		}
 
+		string append = "";
+		try {
+			append = Util::Cookie::read<string>(instanceDir + "/.append");
+		} catch(...) { }
+
 		// port may be taken already
 
 		if (!isPortFree(sshPort)) {
@@ -269,7 +274,8 @@ public:
 			+" -boot c"
 			+(withKernel ? " -append \"root=/dev/sda console=ttyS0\"" : "")
 			+" -nographic"
-			+" -enable-kvm''"
+			+" -enable-kvm"
+			+" "+append+"''"
 		};
 
 		auto process = make_shared<Sys::Process>("/bin/bash", vmArgs);

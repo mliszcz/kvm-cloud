@@ -3,6 +3,7 @@
 #define _COOKIE_HPP_
 
 #include <string>
+#include <iostream>
 #include <fstream>
 
 #include "Exception.hpp"
@@ -27,7 +28,7 @@ public:
 		T data;
 		ifstream fin(cookie);
 		if (!fin) throw Exception("Cookie::read(string)", "file does not exist");
-		fin >> data;
+		fin >> std::noskipws >> data;
 		return data;
 	}
 };
